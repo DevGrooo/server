@@ -1,0 +1,37 @@
+stages:
+ - package_server
+ - deploy_server
+
+package_server:
+  stage: package_server
+  script:
+    - chmod 777 -R storage
+    - cp $SERVER_ENV .env
+    - cd .docker/php-apache && cat Dockerfile_ext >> Dockerfile
+    - cd $CI_PROJECT_DIR
+    - docker build -f .docker/php-apache/Dockerfile -t grooo/fmc-server .
+    - export IMAGE="684824300297.dkr.ecr.ap-southeast-1.amazonaws.com/grooo/fmc-server:latest"
+    - docker tag grooo/fmc-server:latest $IMAGE
+    - docker push $IMAGE
+    - echo "Deleting all untagged images:"
+    - aws ecr list-images --repository-name grooo/fmc-server --query 'imageIds[?type(imageTag)!=`string`].[imageDigest]' --output text | while read line; do aws ecr batch-delete-image --repository-name grooo/fmc-server --image-ids imageDigest=$line; done
+  cache:
+    paths:
+      - ./vendor
+  tags:
+    - grooo-shell
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /\[build\]/
+      
+deploy_server:
+  stage: deploy_server
+  script:
+    - cat .docker/deploy-stg.sh | ssh -o StrictHostKeyChecking=no -i ~/.ssh/grooo-build-dev.pem ec2-user@$SERVER_DEV_IP
+  tags:
+    - grooo-shell
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /\[build\]/
+
+

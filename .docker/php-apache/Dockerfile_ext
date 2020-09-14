@@ -1,0 +1,9 @@
+### Build & Package Image ###
+
+COPY .docker/php-apache/000-default.conf /etc/apache2/sites-available/000-default.conf
+
+COPY .docker/php-apache/php.ini /usr/local/etc/php/php.ini
+
+COPY ./ /var/www/html
+
+RUN composer install

@@ -1,0 +1,6 @@
+{
+    "Access denied": "Truy cập bị từ chối",
+    "Error undefined": "Lỗi không xác định",
+    "This action is unauthorized." : "Truy cập dữ liệu bì từ chối",
+    "The given data was invalid." : "Tham số đầu vào không hợp lệ"
+}

@@ -1,0 +1,52 @@
+version: "3.4"
+
+services:
+  php_apache:
+    build: ./php-apache
+    container_name: php_apache
+    volumes:
+      - ./php-apache/000-default.conf:/etc/apache2/sites-available/000-default.conf
+      - ./php-apache/php.ini:/usr/local/etc/php/php.ini
+      - ./php-apache/log:/var/log/apache2
+      - ../:/var/www/html
+    ports:
+      - 80:80
+    networks:
+      - dev_network
+    restart: always
+
+  mariadb:
+    image: mariadb
+    container_name: mariadb
+    restart: always
+    volumes:
+      - dev_volume:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=dev
+      - MYSQL_ROOT_PASSWORD=root
+    networks:
+      - dev_network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    links:
+      - mariadb
+    environment:
+      - MYSQL_USERNAME=root
+      - MYSQL_ROOT_PASSWORD=root
+      - PMA_HOST=mariadb
+    ports:
+      - 8080:80
+    networks:
+      - dev_network
+
+networks:
+  dev_network:
+    driver: bridge
+
+volumes:
+  dev_volume:
+    driver: local
+
